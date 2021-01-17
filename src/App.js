@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { ProgressSpinner } from 'primereact/progressspinner'
 import { InputText } from 'primereact/inputtext'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
@@ -8,6 +9,7 @@ import api from './lib/api'
 const MAX_CLICK_COUNT = 10
 
 function App () {
+  const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
   const [totalPoints, setTotalPoints] = useState(0)
   const [clickCount, setClickCount] = useState(0)
@@ -15,6 +17,25 @@ function App () {
   const [requestPending, setRequestPending] = useState(false)
   const [scores, setScores] = useState([])
   const disableAdjustButton = clickCount === MAX_CLICK_COUNT
+
+  useEffect(() => {
+    async function requestScores () {
+      setLoading(true)
+      const latestScores = await api.getScores()
+      const latestScoresWithAveragePointsPerClick = latestScores
+        .sort((a, b) => {
+          return a.totalPoints - b.totalPoints
+        })
+        .slice(0, 10)
+        .map(score => {
+          score.avgPointsPerClick = Number(score.totalPoints / score.clicks).toFixed(2)
+          return score
+        })
+      setScores(latestScoresWithAveragePointsPerClick)
+      setLoading(false)
+    }
+    requestScores()
+  }, [])
 
   function resetState () {
     setName('')
@@ -31,25 +52,30 @@ function App () {
     if (!name) {
       return setNameError(true)
     }
-    const submittedScore = { name, totalPoints, clicks: clickCount }
+    const submittedScore = {
+      name,
+      totalPoints,
+      clicks: clickCount,
+      avgPointsPerClick: Number(totalPoints / clickCount).toFixed(2)
+    }
+    setRequestPending(true)
+    await api.submitScore(submittedScore)
+    setRequestPending(false)
     const updatedScores = scores.slice()
     updatedScores.push(submittedScore)
     setScores(updatedScores)
     resetState()
-    setRequestPending(true)
-    try {
-      await api.submitScore(submittedScore)
-    } catch (error) {
-
-    }
-    setTimeout(() => {
-      setRequestPending(false)
-    }, 333)
   }
 
   return <div style={{ margin: '2rem' }}>
     <h1>High Score App</h1>
     <br/>
+    {loading
+      ? <>
+      <div style={{ margin: 'auto' }}><ProgressSpinner className="p-d-block" /></div>
+      <h3 style={{ textAlign: 'center' }}>Getting scores</h3>
+    </>
+      : <>
     <div className="p-grid">
       <div className="p-col-fixed">
         <div className={'p-float-label'}>
@@ -71,12 +97,14 @@ function App () {
       </div>
     </div>
     <h3>Current score: {totalPoints}</h3>
+    </>}
     {scores.length > 0 && <>
-      <h3>Leader board</h3>
-      <DataTable value={scores}>
-        <Column field="name" header="Name"></Column>
-        <Column field="totalPoints" header="Score"></Column>
-        <Column field="clicks" header="Clicks"></Column>
+      <h2>Leader board</h2>
+      <DataTable value={scores} sortField="totalPoints" sortOrder={-1}>
+        <Column field="name" header="Name" sortable/>
+        <Column field="totalPoints" header="Score"sortable/>
+        <Column field="clicks" header="Clicks" sortable/>
+        <Column field="avgPointsPerClick" header="Avg Points/Click" sortable/>
       </DataTable>
     </>}
   </div>
