@@ -117,13 +117,17 @@ function App () {
           </div>}
         </div>
         <div className="p-col-fixed">
-          <Button label="Adjust score" disabled={disableAdjustButton || requestPending} className={`p-button-outlined ${disableAdjustButton ? 'p-button-secondary' : ''}`} onClick={adjustScore}/>
+          <Button id="adjust-button" label="Adjust score" disabled={disableAdjustButton || requestPending} className={`p-button-outlined ${disableAdjustButton ? 'p-button-secondary' : ''}`} onClick={adjustScore}/>
         </div>
         <div className="p-col-fixed">
-          <Button label="Save" className="p-button" onClick={submitScores} loading={requestPending}/>
+          <Button id="save-button" label="Save" className="p-button" onClick={submitScores} loading={requestPending}/>
         </div>
       </div>
-      <h3>Current score: {totalPoints} | Remaining adjustments: {MAX_CLICK_COUNT - clickCount}</h3>
+      <h3>
+        <span>Current score: {totalPoints}</span>
+        <span> // </span>
+        <span>Remaining adjustments: {MAX_CLICK_COUNT - clickCount}</span>
+      </h3>
       {clickCount === MAX_CLICK_COUNT && <div>
         You are out of adjustments. Click the "Save" button above to try again.
       </div>}
