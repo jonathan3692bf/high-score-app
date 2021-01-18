@@ -9,7 +9,7 @@ async function submitScore ({ name = '', totalPoints = 0, clicks = 0 }) {
     const promise = new Promise(resolve => {
       setTimeout(() => {
         resolve({})
-      }, 1000)
+      }, 500)
     })
 
     return promise
@@ -39,7 +39,7 @@ async function getScores () {
           { id: 14, name: 'Madhan Smith', totalPoints: Math.round((Math.random() * 2000)) - 1000, clicks: Math.round((Math.random() * 9)) + 1 },
           { id: 15, name: 'Jake Smith', totalPoints: Math.round((Math.random() * 2000)) - 1000, clicks: Math.round((Math.random() * 9)) + 1 }
         ])
-      }, 1000)
+      }, 500)
     })
 
     return promise
